@@ -1,10 +1,12 @@
 import React, {Component} from 'react';
 import {BrowserRouter, Route, Switch} from 'react-router-dom';
 import axios from 'axios';
+import swal from 'sweetalert2'
 import Header from './Header';
 import Navegacion from './Navegacion';
 import Posts from './Posts';
 import SinglePost from './SinglePost';
+import Formulario from './Formulario';
 
 
 class Router extends Component{
@@ -26,6 +28,36 @@ class Router extends Component{
             })
     }
 
+    borrarPost = (id) => {
+        axios.delete(`https://jsonplaceholder.typicode.com/posts/${id}`)
+        .then(res=>{
+            if(res.status ===200) {
+                const posts = [...this.state.posts];
+                let resultado = posts.filter(post =>(
+                    post.id != id
+                ));
+                this.setState({
+                    posts : resultado
+                })
+            }
+
+        })
+
+    }
+    crearPost = (post) => {
+        axios.post(`https://jsonplaceholder.typicode.com/posts`, {post})
+            .then(res =>{
+                if(res.status === 201) {
+                    let postId = {id: res.data.id};
+                    const nuevoPost = Object.assign({}, res.data.post, posId);
+
+                    this.setState(prevState => ({
+                        posts: [...prevState.posts, nuevoPost]
+                    }))
+                }
+            })
+    }
+
     render (){
         return(
             <BrowserRouter>
@@ -38,6 +70,7 @@ class Router extends Component{
                                 return (
                                     <Posts 
                                         posts = {this.state.post}
+                                        borrarPost = {this.borrarPost}
                                     />
                                 )
                             }}
@@ -47,7 +80,7 @@ class Router extends Component{
                                 const posts = this.state.posts;
                                 let filtro;
                                 filtro = posts.filter(post =>(
-                                    post.id == idPost
+                                    post.id == Number(idPost)
                                 ))
 
                                 return(
@@ -58,6 +91,15 @@ class Router extends Component{
                             }}
 
                             />
+                            <Route exact path="/crear" render = { ()=>{
+                                return(
+                                    <Formulario
+                                        crearPost={this.crearPost}
+                                    />
+                                )
+                            }}
+                            />
+
                         </Switch>
                     </div>
                 </div>
